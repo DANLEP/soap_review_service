@@ -20,6 +20,14 @@ class ReviewStatus(str, enum.Enum):
     hidden = 'hidden'
 
 
+class ReviewStatusExt(str, enum.Enum):
+    pending = 'pending'
+    approved = 'approved'
+    rejected = 'rejected'
+    hidden = 'hidden'
+    all = 'all'
+
+
 review = Table(
     'review',
     metadata,
@@ -39,6 +47,15 @@ user = Table(
     Column('email', String, nullable=False),
     Column('first_name', String),
     Column('last_name', String)
+)
+
+photo = Table(
+    'photo',
+    metadata,
+    Column('id_photo', Integer, primary_key=True),
+    Column('url', String(255), nullable=False),
+    Column('created_at', DateTime, nullable=False),
+    Column('fk_review', Integer, ForeignKey('review.id_review'))
 )
 
 database = Database(DATABASE_URI)

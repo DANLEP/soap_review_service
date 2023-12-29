@@ -1,40 +1,49 @@
-from typing import List
+import uuid
+from typing import List, Optional, Annotated
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 
 from app.api import db_manager
-from app.api.db import ReviewStatus
-from app.api.models import ReviewIn, ReviewOut, User
+from app.api.db import ReviewStatus, ReviewStatusExt
+from app.api.gcs import upload_to_gcs
+from app.api.models import ReviewIn, ReviewOut, User, PhotoIn
 
 review = APIRouter()
 
 
 @review.get("/", response_model=List[ReviewOut])
-async def get_attraction_reviews(id_attraction: int):
-    reviews = await db_manager.get_attraction_reviews(id_attraction)
-    review_list = []
-    for review in reviews:
-        user = await db_manager.get_short_user_info(review['fk_user'])
-        username = user['email'].split('@')[0]
-        review_list.append(ReviewOut(**review,
-                                     user=User(
-                                         id_user=user['id_user'],
-                                         username=username,
-                                         first_name=user['first_name'],
-                                         last_name=user['last_name'])
-                                     )
-                           )
+async def get_attraction_reviews(id_attraction: int, status: ReviewStatus = 'approved'):
+    reviews = await db_manager.get_attraction_reviews(id_attraction, status)
+    return await db_manager.extend_review_info(reviews)
 
-    return review_list
+
+@review.get("/all", response_model=List[ReviewOut])
+async def get_reviews(status: ReviewStatusExt = 'all'):
+    reviews = await db_manager.get_reviews(status)
+    return await db_manager.extend_review_info(reviews)
 
 
 @review.post("/")
-async def create_attraction_review(id_attraction: int, id_user: int, payload: ReviewIn):
+async def create_attraction_review(id_attraction: int,
+                                   id_user: int,
+                                   payload: ReviewIn):
     review_id = await db_manager.add_attraction_review(id_attraction, id_user, payload)
+
     return {"id_review": review_id,
             "detail": f"Review {review_id} created! Moderation pending"}
 
 
+@review.post("/{id_review}/photos")
+async def add_photos_to_review(review_id: int, files: List[UploadFile] = File(...)):
+    if review_id and files and review_id > 0:
+        i = 1
+        for file in files:
+            if i < 10:
+                file.filename = f"{uuid.uuid4()}.jpg"
+                public_url = await upload_to_gcs(file)
+                photo_id = await db_manager.add_photo(review_id, PhotoIn(url=public_url))
+        return {"detail": f"Photos added to review {review_id}!"}
+    return {"detail": f"Cant add photo to review {review_id}!"}
 @review.put("/{id_review}")
 async def update_review_status(id_review: int, status: ReviewStatus):
     try:

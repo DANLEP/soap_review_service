@@ -1,10 +1,19 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
 from app.api.db import ReviewStatus
+
+
+class PhotoIn(BaseModel):
+    url: str
+
+
+class PhotoOut(PhotoIn):
+    id_photo: int
+    created_at: datetime
 
 
 class User(BaseModel):
@@ -16,7 +25,7 @@ class User(BaseModel):
 
 class ReviewIn(BaseModel):
     review_text: str
-    rating: float
+    rating: int
 
 
 class ReviewOut(ReviewIn):
@@ -26,3 +35,4 @@ class ReviewOut(ReviewIn):
     fk_user: int
     fk_attraction: int
     user: User
+    photos: Optional[List[PhotoOut]]
