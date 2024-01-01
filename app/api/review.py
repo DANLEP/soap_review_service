@@ -1,12 +1,12 @@
 import uuid
-from typing import List, Optional, Annotated
+from typing import List
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File
 
 from app.api import db_manager
-from app.api.db import ReviewStatus, ReviewStatusExt
+from app.api.db import ReviewStatus, ReviewStatusExt, PreferenceType
 from app.api.gcs import upload_to_gcs
-from app.api.models import ReviewIn, ReviewOut, User, PhotoIn
+from app.api.models import ReviewIn, ReviewOut, PhotoIn
 
 review = APIRouter()
 
@@ -44,6 +44,8 @@ async def add_photos_to_review(review_id: int, files: List[UploadFile] = File(..
                 photo_id = await db_manager.add_photo(review_id, PhotoIn(url=public_url))
         return {"detail": f"Photos added to review {review_id}!"}
     return {"detail": f"Cant add photo to review {review_id}!"}
+
+
 @review.put("/{id_review}")
 async def update_review_status(id_review: int, status: ReviewStatus):
     try:
@@ -53,3 +55,9 @@ async def update_review_status(id_review: int, status: ReviewStatus):
         return {"detail": f"Review {id_review} updated! Moderation {status}"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@review.post("/preference/")
+async def make_preference(id_user: int, id_attraction, preference: PreferenceType):
+    await db_manager.make_preference(id_user, id_attraction, preference)
+    return {"detail": "Preference created!"}

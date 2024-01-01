@@ -28,6 +28,11 @@ class ReviewStatusExt(str, enum.Enum):
     all = 'all'
 
 
+class PreferenceType(str, enum.Enum):
+    like = 'like'
+    dislike = 'dislike'
+
+
 review = Table(
     'review',
     metadata,
@@ -56,6 +61,15 @@ photo = Table(
     Column('url', String(255), nullable=False),
     Column('created_at', DateTime, nullable=False),
     Column('fk_review', Integer, ForeignKey('review.id_review'))
+)
+
+
+user_attraction_preference = Table(
+    'user_attraction_preference',
+    metadata,
+    Column('fk_user', ForeignKey('user.id_user'), nullable=False),
+    Column('fk_attraction', ForeignKey('attraction.id_attraction'), nullable=False),
+    Column('preference_type', Enum(PreferenceType), nullable=False)
 )
 
 database = Database(DATABASE_URI)

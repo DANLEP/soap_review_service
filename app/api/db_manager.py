@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from app.api import gcs
-from app.api.db import database, review, ReviewStatus, ReviewStatusExt, photo
+from app.api.db import database, review, ReviewStatus, ReviewStatusExt, photo, PreferenceType, \
+    user_attraction_preference
 from app.api.models import ReviewIn, ReviewOut, User, PhotoIn, PhotoOut
 
 
@@ -61,6 +62,16 @@ async def add_photo(id_review: int, payload: PhotoIn):
 async def get_review_photos(id_review: int):
     query = photo.select(photo.c.fk_review == id_review)
     return await database.fetch_all(query=query)
+
+
+async def make_preference(id_user: int, id_attraction: int, preference: PreferenceType):
+    query = user_attraction_preference.insert().values(
+        fk_user=id_user,
+        fk_attraction=id_attraction,
+        preference_type=preference
+    )
+
+    return await database.execute(query=query)
 
 
 async def extend_review_info(reviews):
