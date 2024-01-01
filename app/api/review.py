@@ -55,9 +55,3 @@ async def update_review_status(id_review: int, status: ReviewStatus):
         return {"detail": f"Review {id_review} updated! Moderation {status}"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-
-@review.post("/preference/")
-async def make_preference(id_user: int, id_attraction, preference: PreferenceType):
-    await db_manager.make_preference(id_user, id_attraction, preference)
-    return {"detail": "Preference created!"}
