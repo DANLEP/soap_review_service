@@ -3,7 +3,7 @@ from datetime import datetime
 from app.api import gcs
 from app.api.db import database, review, ReviewStatus, ReviewStatusExt, photo, PreferenceType, \
     user_attraction_preference
-from app.api.models import ReviewIn, ReviewOut, User, PhotoIn, PhotoOut
+from app.api.models import ReviewIn, ReviewOut, UserExtended, PhotoIn, PhotoOut
 
 
 async def get_attraction_reviews(id: int, status: ReviewStatus):
@@ -91,7 +91,7 @@ async def extend_review_info(reviews):
 
         # final
         review_list.append(ReviewOut(**review,
-                                     user=User(
+                                     user=UserExtended(
                                          id_user=user['id_user'],
                                          username=username,
                                          first_name=user['first_name'],

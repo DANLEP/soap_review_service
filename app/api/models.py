@@ -23,6 +23,13 @@ class User(BaseModel):
     last_name: Optional[str]
 
 
+class UserExtended(BaseModel):
+    id_user: int
+    email: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+
+
 class ReviewIn(BaseModel):
     review_text: str
     rating: int
@@ -34,5 +41,5 @@ class ReviewOut(ReviewIn):
     review_status: ReviewStatus
     fk_user: int
     fk_attraction: int
-    user: User
+    user: UserExtended
     photos: Optional[List[PhotoOut]]
